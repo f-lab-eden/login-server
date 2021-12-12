@@ -10,6 +10,17 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 
+app.post('/auth/refresh', (req, res) => {
+ const {refreshToken} = req.body
+    console.log(refreshToken)
+    if(refreshToken === null) return res.sendStatus(401);
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
+        if(err) return res.sendStatus(403);
+        const accessToken = generateAccessToken(payload)
+        res.json({accessToken})
+    })
+})
+
 app.post('/auth/login', (req, res) => {
     const {username, password} = req.body;
     const user = {
@@ -32,11 +43,11 @@ app.get('/blog', authenticateToken, (req, res) => {
     const result = [
         {
             title : '블로그 첫번째',
-            des: '내용1'
+            desc: '내용1'
         },
         {
             title : '블로그 두번째',
-            des: '내용2'
+            desc: '내용2'
         }
     ]
     res.json(result)
@@ -47,13 +58,14 @@ function authenticateToken(req, res, next)  {
     const token = authToken && authToken.split(' ')[1]
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err) return res.sendStatus(403);
-        console.log(user)
     })
     next();
 }
 
 function generateAccessToken(payload) {
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET)
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '330s'
+    })
 }
 
 function generateRefreshToken(payload) {
