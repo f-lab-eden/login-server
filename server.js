@@ -14,7 +14,7 @@ app.post('/auth/login', (req, res) => {
     const {username, password} = req.body;
     const user = {
         name: 'hj',
-        password: 1234,
+        password: "1234",
     }
 
     if(user.name === username && user.password === password) {
